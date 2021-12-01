@@ -48,6 +48,7 @@ namespace QuotesApi.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] Quote quote)
         {
+            quote.CreatedAt = DateTime.Now;
             _quotesDbContext.Quotes.Add(quote);
             _quotesDbContext.SaveChanges();
             return StatusCode(StatusCodes.Status201Created, quote);
@@ -65,6 +66,8 @@ namespace QuotesApi.Controllers
             entity.Title = quote.Title;
             entity.Author = quote.Author;
             entity.Description = quote.Description;
+            entity.Type = quote.Type;
+            entity.CreatedAt = quote.CreatedAt;
             _quotesDbContext.SaveChanges();
             return Ok(entity);
         }

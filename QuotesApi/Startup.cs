@@ -49,7 +49,7 @@ namespace QuotesApi
 
             app.UseAuthorization();
 
-            quotesDbContext.Database.EnsureCreated();
+            quotesDbContext.Database.Migrate();
 
             app.UseEndpoints(endpoints =>
             {
