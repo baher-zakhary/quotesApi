@@ -25,10 +25,23 @@ namespace QuotesApi.Controllers
 
         // GET: api/<QuotesController>
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult Get(string sort)
         {
-            return Ok(_quotesDbContext.Quotes);
-            //return StatusCode(StatusCodes.Status200OK, _quotesDbContext.Quotes);
+            IQueryable<Quote> quotesQuery;
+            switch (sort)
+            {
+                case "desc":
+                    quotesQuery = _quotesDbContext.Quotes.OrderByDescending(q => q.CreatedAt);
+                    break;
+                case "asc":
+                    quotesQuery = _quotesDbContext.Quotes.OrderBy(q => q.CreatedAt);
+                    break;
+                default:
+                    quotesQuery = _quotesDbContext.Quotes.OrderBy(q => q.CreatedAt);
+                    break;
+            }
+            return Ok(quotesQuery);
+            //return StatusCode(StatusCodes.Status200OK, quotesQuery);
         }
 
         // GET api/<QuotesController>/5
@@ -44,11 +57,19 @@ namespace QuotesApi.Controllers
             return Ok(quote);
         }
 
+        // Routing demo
+        // GET api/quotes/test/{id}
+        [HttpGet("[action]/{id}")]
+        public int Test(int id)
+        {
+            return id;
+        }
+
         // POST api/<QuotesController>
         [HttpPost]
         public IActionResult Post([FromBody] Quote quote)
         {
-            quote.CreatedAt = DateTime.Now;
+            //quote.CreatedAt = DateTime.Now;
             _quotesDbContext.Quotes.Add(quote);
             _quotesDbContext.SaveChanges();
             return StatusCode(StatusCodes.Status201Created, quote);
