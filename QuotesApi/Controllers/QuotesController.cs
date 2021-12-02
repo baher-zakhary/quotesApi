@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QuotesApi.Data;
 using QuotesApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -13,6 +15,7 @@ namespace QuotesApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize]
     public class QuotesController : ControllerBase
     {
 
@@ -25,6 +28,8 @@ namespace QuotesApi.Controllers
 
         // GET: api/<QuotesController>
         [HttpGet]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
+        [AllowAnonymous]
         public IActionResult Get(string sort)
         {
             IQueryable<Quote> quotesQuery;
@@ -84,10 +89,23 @@ namespace QuotesApi.Controllers
             return Ok(quote);
         }
 
+        [HttpGet("[action]")]
+        public IActionResult GetUserQuotes()
+        {
+            string userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            var quotes = _quotesDbContext.Quotes.Where(q => q.UserId == userId);
+            return Ok(quotes);
+        }
+
         // POST api/<QuotesController>
         [HttpPost]
         public IActionResult Post([FromBody] Quote quote)
         {
+            // Make created quote accessible for its creator only
+            string userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            quote.UserId = userId;
+
+
             //quote.CreatedAt = DateTime.Now;
             _quotesDbContext.Quotes.Add(quote);
             _quotesDbContext.SaveChanges();
@@ -98,10 +116,16 @@ namespace QuotesApi.Controllers
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] Quote quote)
         {
+            string userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
             var entity = _quotesDbContext.Quotes.Find(id);
             if (entity == null)
             {
                 return NotFound();
+            }
+            if (userId != entity.UserId)
+            {
+                return Unauthorized();
             }
             entity.Title = quote.Title;
             entity.Author = quote.Author;
@@ -116,10 +140,17 @@ namespace QuotesApi.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
+            string userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            
             var quote = _quotesDbContext.Quotes.Find(id);
             if (quote == null)
             {
                 return NotFound();
+            }
+
+            if (userId != quote.UserId)
+            {
+                return Unauthorized();
             }
             _quotesDbContext.Remove(quote);
             _quotesDbContext.SaveChanges();
