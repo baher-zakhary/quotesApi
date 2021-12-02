@@ -30,7 +30,7 @@ namespace QuotesApi
             services.AddControllers();
             services.AddDbContext<QuotesDbContext>(
                 option =>
-                option.UseSqlServer(@"Data Source=BAHERWY-PC\SQLEXPRESS;Initial Catalog=localDbQuotesApp;Integrated Security=true")
+                option.UseSqlServer(Configuration.GetConnectionString("quotesDbContext"))
                 );
             services.AddMvc().AddXmlSerializerFormatters();
             services.AddResponseCaching();
