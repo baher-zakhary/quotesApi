@@ -50,7 +50,9 @@ namespace QuotesApi
 
             app.UseAuthorization();
 
-            quotesDbContext.Database.Migrate();
+            quotesDbContext.Database.EnsureCreated();
+            //quotesDbContext.Database.Migrate();
+
             app.UseResponseCaching();
 
             app.UseEndpoints(endpoints =>
