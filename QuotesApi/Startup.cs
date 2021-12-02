@@ -33,6 +33,7 @@ namespace QuotesApi
                 option.UseSqlServer(@"Data Source=BAHERWY-PC\SQLEXPRESS;Initial Catalog=localDbQuotesApp;Integrated Security=true")
                 );
             services.AddMvc().AddXmlSerializerFormatters();
+            services.AddResponseCaching();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -50,6 +51,7 @@ namespace QuotesApi
             app.UseAuthorization();
 
             quotesDbContext.Database.Migrate();
+            app.UseResponseCaching();
 
             app.UseEndpoints(endpoints =>
             {
